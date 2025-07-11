@@ -63,7 +63,35 @@ int main()
     system("cls");
     system("title CSimpleOS - 主程序 - 欢迎界面");
     cout << "欢迎使用CSimpleOS" << endl;
-    
-    
 
+    system("pause");
+    system("cls");
+    system("title CSimpleOS - 主程序 - 登陆界面");
+    cout << "请登录您的账户" << endl;
+    string username = "Administrator";
+    string password = "123456";
+    while (true)
+    {
+        cout << "用户名: ";
+        cin >> username;
+        cout << "密码: ";
+        cin >> password;
+        // 这里可以添加登录验证逻辑
+        if (username == "Administrator" && password == "123456")
+        {
+            cout << "登录成功！" << endl;
+            system("pause");
+            system("cls");
+            system("title CSimpleOS - 主程序 - 主菜单");
+            break;
+        }
+        else
+        {
+            cout << "登录失败！" << endl;
+            system("pause");
+            continue;
+        }
+    }
+    // 主菜单
+    
 }

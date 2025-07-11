@@ -180,6 +180,7 @@ int main()
     if (Install_user_choose == "1")
     {
         system("title CSimpleOS - 安装程序 - 安装中");
+        Sleep(20000);
     }
     else if (Install_user_choose == "2")
     {
@@ -193,6 +194,87 @@ int main()
     cout << "请稍后" << endl;
     system("title CSimpleOS - 安装程序 - 下载必要组件");
     system("wget -P ./tools https://github.com/CSimpleOS/CSimpleOS-Tool/releases/download/V0.0.1/notepad.exe");
+    system("title CSimpleOS - 安装程序 - 创建快捷方式");
+    system("mrlink ./main.exe C:\\Users\\Public\\Desktop\\CSimpleOS.lnk");
+    system("title CSimpleOS - 安装程序 - 创建注册表项");
+    // 创建注册表项
+        // 获取当前程序路径
+    char szPath[MAX_PATH];
+    if (!GetModuleFileNameA(NULL, szPath, MAX_PATH)) {
+        std::cerr << "无法获取当前程序路径，错误码: " << GetLastError() << std::endl;
+        return 1;
+    }
+    
+    // 提取程序所在目录（去除 exe 文件名）
+    std::string exePath(szPath);
+    size_t lastSlash = exePath.find_last_of("\\/");
+    if (lastSlash == std::string::npos) {
+        std::cerr << "无法解析程序路径" << std::endl;
+        return 1;
+    }
+    std::string installDir = exePath.substr(0, lastSlash);
+    
+    // 函数模板：创建注册表项并设置值
+    auto createRegKeyAndSetValue = [](
+        const wchar_t* keyPath, 
+        const wchar_t* valueName, 
+        const std::string& valueData) {
+        
+        HKEY hKey;
+        LONG lResult = RegCreateKeyExW(
+            HKEY_LOCAL_MACHINE,
+            keyPath,
+            0, NULL, REG_OPTION_NON_VOLATILE,
+            KEY_SET_VALUE, NULL, &hKey, NULL);
+            
+        if (lResult == ERROR_SUCCESS) {
+            // 转换为宽字符字符串
+            std::wstring wValueData(valueData.begin(), valueData.end());
+            
+            lResult = RegSetValueExW(
+                hKey, valueName, 0, REG_SZ,
+                (BYTE*)wValueData.c_str(),
+                (DWORD)((wValueData.length() + 1) * sizeof(wchar_t)));
+                
+            RegCloseKey(hKey);
+            
+            if (lResult == ERROR_SUCCESS) {
+                std::wcout << L"注册表项 " << keyPath << L" 已创建" << std::endl;
+                return true;
+            }
+        }
+        
+        std::wcout << L"操作注册表失败，错误码: " << lResult << std::endl;
+        std::wcout << L"请尝试以管理员身份运行程序" << std::endl;
+        return false;
+    };
+    
+    // 构建完整路径
+    std::string uninstallPath = installDir + "\\uninstall.exe";
+    std::string mainPath = installDir + "\\main.exe";
+    std::string installPath = installDir + "\\install.exe";
+    
+    // 创建卸载程序注册表项
+    createRegKeyAndSetValue(
+        L"SOFTWARE\\CSimpleOS\\CSimpleOS\\Uninstall",
+        L"UninstallString",
+        uninstallPath);
+        
+    // 创建主程序注册表项
+    createRegKeyAndSetValue(
+        L"SOFTWARE\\CSimpleOS\\CSimpleOS\\Main",
+        L"MainString",
+        mainPath);
+        
+    // 创建安装程序注册表项
+    createRegKeyAndSetValue(
+        L"SOFTWARE\\CSimpleOS\\CSimpleOS\\Install",
+        L"InstallString",
+        installPath);
+        
+    system("cls");
+    // 安装完成界面
+    Sleep(2000);
     system("title CSimpleOS - 安装程序 - 安装完成");
     cout << "CSimpleOS安装完成" << endl;
     
